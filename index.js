@@ -22,17 +22,16 @@ clientMongo.connect(err => {
   
   client.on('ready', () => {
 	console.log('ready!')
-    // buscar todos los objetos con la propiedad "tag" en la coleccion de MongoDB
+
     collection.find({ discordTag: { $exists: true } }).toArray((err, docs) => {
-		console.log(docs)
       if (err) throw err;
 		
-      // para cada objeto encontrado
       for (let i = 0; i < docs.length; i++) {
-		let tag = docs[i].DiscordTag;
+		let tag = docs[i].discordTag;
+		console.log(tag,"Aqui")
 		let user = client.fetchUser(tag).then(user => {
-		  console.log(user.id);
-		}).catch(console.error);
+			console.log(user);
+		}).catch(console.error); 
 	  }
     });
   });
