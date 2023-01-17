@@ -2,7 +2,8 @@ const dotenv = require('dotenv');
 dotenv.config();
 const fs = require('node:fs');
 const path = require('node:path');
-const{TOKEN}=process.env
+const{TOKEN,DB_LINK,guildId}=process.env
+const MongoClient = require('mongodb').MongoClient;
 
 const { Client, Collection, Events, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 
@@ -15,20 +16,38 @@ const client = new Client({
 	],
 });
 
+const clientMongo = new MongoClient(DB_LINK, { useNewUrlParser: true });
+clientMongo.connect(err => {
+  const collection = clientMongo.db("test").collection("users");
+  
+  client.on('ready', () => {
+	console.log('ready!')
+    // buscar todos los objetos con la propiedad "tag" en la coleccion de MongoDB
+    collection.find({ discordTag: { $exists: true } }).toArray((err, docs) => {
+		console.log(docs)
+      if (err) throw err;
+		
+      // para cada objeto encontrado
+      for (let i = 0; i < docs.length; i++) {
+		let tag = docs[i].DiscordTag;
+		let user = client.fetchUser(tag).then(user => {
+		  console.log(user.id);
+		}).catch(console.error);
+	  }
+    });
+  });
 
-client.once(Events.ClientReady, c => {
-    console.log(`Ready! Logged in as ${c.user.tag}`); 
+  client.login(TOKEN);
 });
 
-client.login(TOKEN);
 
-client.on(Events.GuildMemberAdd, (member) => {
+/* client.on(Events.GuildMemberAdd, (member) => {
     // Obtener el rol "alumno"
     let role = member.guild.roles.cache.find(r => r.name === "alumno");
     // Asignar el rol al miembro
     member.roles.add(role);
 	console.log(member.guild.roles.cache)
-});
+}); */
 client.commands = new Collection();
 
 
