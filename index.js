@@ -2,6 +2,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 const fs = require('node:fs');
 const path = require('node:path');
+const axios = require('axios');
 const{TOKEN,DB_LINK,guildId}=process.env
 const MongoClient = require('mongodb').MongoClient;
 
@@ -27,11 +28,18 @@ clientMongo.connect(err => {
       if (err) throw err;
 		
       for (let i = 0; i < docs.length; i++) {
-		let tag = docs[i].discordTag;
-		console.log(tag,"Aqui")
-		let user = client.fetchUser(tag).then(user => {
-			console.log(user);
-		}).catch(console.error); 
+		  let tag = docs[i].discordTag;
+		  console.log(tag,"Aqui")
+		  const [username, discriminator] = tag.split('#');
+		  axios.get(`https://discord.com/api/users/${username}/${discriminator}`,null,{
+			headers: {
+				'Authorization': `Bot ${TOKEN}`
+			}
+		  })
+			.then(response => {
+				console.log(response.data.id);
+			})
+			.catch(console.error);
 	  }
     });
   });
