@@ -7,7 +7,7 @@ module.exports = {
     .setDescription("Check if your user tag is valid"),
   async execute(interaction) {
     if (interaction.member.roles.cache.some((role) => role.name === "alumno")) {
-        interaction.channel.send("Lo siento, este comando ya se ha utilizado.");
+        interaction.channel.send("Lo siento, este comando no puede ser utilizado.");
     } else {
       let tag = interaction.user.tag;
       const [username, discriminator] = tag.split("#");
@@ -20,7 +20,8 @@ module.exports = {
               (r) => r.name === "alumno"
             );
              interaction.member.roles.add(role);
-             interaction.member.setNickname(nickName);  
+             interaction.member.setNickname(nickName);
+             interaction.reply(`Has podido ser verificado por lo que ahora tu rol es de "alumno"`)   
           } 
         })
         .catch((e) => {
@@ -32,9 +33,10 @@ module.exports = {
               channel.send(
                 `El usuario ${interaction.user.username} con el tag ${interaction.user.tag} no existe en la base de datos por lo que no ha sido verificado`
               );
+              interaction.reply('No estas verificado')
             }
           }  
-          console.log(e)
+          console.log(e) 
         });
     }
   },
