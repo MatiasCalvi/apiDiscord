@@ -13,6 +13,7 @@ const {
   GatewayIntentBits,
   PermissionsBitField,
 } = require("discord.js");
+const { Console } = require("node:console");
 
 const client = new Client({
   intents: [
@@ -113,6 +114,30 @@ client.on(Events.GuildMemberAdd, (member) => {
 				} 
 				
 			}); 
-}); 
+});
+
+const prohibitedWords = ["puto", "weon"];
+
+client.on(Events.MessageCreate, (message) => {
+	// Verificar si el mensaje contiene una palabra prohibida
+	const includesProhibitedWord = prohibitedWords.some((word) => message.content.includes(word));
+  
+	if (includesProhibitedWord) {
+	  // Eliminar el mensaje
+	  message.delete();
+	  
+	  let reason = `Palabra prohibida utilizada: ${message.content}`;
+	  message.guild.members.ban(message.author, {reason: reason});
+
+	  // Banear al usuario
+	  message.guild.members.ban(message.author);
+  
+	  // Enviar un mensaje al canal de reportes
+	  const reportChannel = message.guild.channels.cache.find((channel) => channel.name === "reportes");
+	  if(reportChannel){  
+		reportChannel.send(`${message.author.tag} ha sido baneado por: "${reason}" utilizando la palabra "${message.content}"`);
+	  }
+	}
+});
 
 client.login(TOKEN);
