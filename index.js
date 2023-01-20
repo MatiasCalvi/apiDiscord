@@ -2,9 +2,10 @@ const dotenv = require("dotenv");
 dotenv.config();
 const { TOKEN} = process.env;
 const axios = require("axios");
-/* const MongoClient = require("mongodb").MongoClient; */
 const fs = require("node:fs");
 const path = require("node:path");
+const MongoClient = require("mongodb").MongoClient;
+const ObjectId = require("mongodb").ObjectId;
 
 const {
   Client,
@@ -13,6 +14,7 @@ const {
   GatewayIntentBits,
   PermissionsBitField,
 } = require("discord.js");
+
 const { Console } = require("node:console");
 
 const client = new Client({
@@ -125,18 +127,123 @@ client.on(Events.MessageCreate, (message) => {
 	if (includesProhibitedWord) {
 	  // Eliminar el mensaje
 	  message.delete();
-	  
-	  let reason = `Palabra prohibida utilizada: ${message.content}`;
-	  message.guild.members.ban(message.author, {reason: reason});
 
-	  // Banear al usuario
-	  message.guild.members.ban(message.author);
-  
-	  // Enviar un mensaje al canal de reportes
-	  const reportChannel = message.guild.channels.cache.find((channel) => channel.name === "reportes");
-	  if(reportChannel){  
-		reportChannel.send(`${message.author.tag} ha sido baneado por: "${reason}" utilizando la palabra "${message.content}"`);
-	  }
+	  let tag=member.user.tag
+	  const [username, discriminator] = tag.split('#');
+
+	  axios.get(`http://localhost:8080/api/user/${username}%23${discriminator}`)
+			.then(response => {
+				 if(response.data.success){
+					if (response.data.data.lastName.strikes===0){
+						let data={}
+						data.strikes=1;
+						axios.patch(`http://localhost:8080/api/user/${username}%23${discriminator}`,data)
+						.then(response => {
+							if(response.data.success){
+								message.channel.send('Palabra prohibida utilizada, se le advierte una vez..')
+								MongoClient.connect(DB_LINK, { useUnifiedTopology: true }, (err, client) => {
+									if (err) throw err;
+									let db = client.db("test");
+									let collection = db.collection("bans");
+									// guardando el baneo en la base de datos
+									collection.insertOne({
+										userId: message.author.id,
+										username: message.author.username,
+										reportedBy: message.guild.member(client.user).displayName,
+										reason: reason,
+										date: new Date()
+									}, (err, res) => {
+										if (err) throw err;
+										console.log("Report saved to the database");
+										client.close();
+									});
+								})
+							}
+						})
+						.catch((e)=> {
+							console.log(e)
+						})
+					}
+					if (response.data.data.lastName.strikes===1){
+						let data={}
+						data.strikes=2;
+						axios.patch(`http://localhost:8080/api/user/${username}%23${discriminator}`,data)
+						.then(response => {
+							if(response.data.success){
+								message.channel.send('Palabra prohibida utilizada, recuerde que ya se le a advertido previamente, la proxima vez sera baneado')
+								MongoClient.connect(DB_LINK, { useUnifiedTopology: true }, (err, client) => {
+									if (err) throw err;
+									let db = client.db("test");
+									let collection = db.collection("bans");
+									// guardando el baneo en la base de datos
+									collection.insertOne({
+										userId: message.author.id,
+										username: message.author.username,
+										reportedBy: message.guild.member(client.user).displayName,
+										reason: reason,
+										date: new Date()
+									}, (err, res) => {
+										if (err) throw err;
+										console.log("Report saved to the database");
+										client.close();
+									});
+								})
+							}
+						})
+						.catch((e)=> {
+							console.log(e)
+						})
+					}
+					if (response.data.data.lastName.strikes===2){
+						let data={}
+						data.strikes=3;
+						axios.patch(`http://localhost:8080/api/user/${username}%23${discriminator}`,data)
+						.then(response => {
+
+							if(response.data.success){
+
+								let reason = `Palabra prohibida utilizada: ${message.content}`;
+								message.guild.members.ban(message.author, {reason: reason});
+
+								// Banear al usuario
+								message.guild.members.ban(message.author);
+							
+								// Enviar un mensaje al canal de reportes
+								const reportChannel = message.guild.channels.cache.find((channel) => channel.name === "reportes");
+								if(reportChannel){  
+									reportChannel.send(`${message.author.tag} ha sido baneado por: "${reason}" utilizando la palabra "${message.content}"`);
+								}
+
+								MongoClient.connect(DB_LINK, { useUnifiedTopology: true }, (err, client) => {
+									if (err) throw err;
+									let db = client.db("test");
+									let collection = db.collection("bans");
+									// guardando el baneo en la base de datos
+									collection.insertOne({
+										userId: message.author.id,
+										username: message.author.username,
+										reportedBy: message.guild.member(client.user).displayName,
+										reason: reason,
+										date: new Date()
+									}, (err, res) => {
+										if (err) throw err;
+										console.log("Ban saved to the database");
+										client.close();
+									});
+								})
+							}
+						})
+						.catch((e)=> {
+							console.log(e)
+						})
+					}
+				} 
+			})
+			.catch((e)=> {
+			    	
+				console.log(e) 
+				
+		});
 	}
 });
 
