@@ -107,13 +107,19 @@ client.on(Events.GuildMemberAdd, (member) => {
         let nickName = `${response.data.data.lastName}${" "}${
           response.data.data.name
         }`;
-        let role = member.guild.roles.cache.find((r) => r.name === "alumno");
-        member.roles.add(role);
+        if (response.data.data.role === "alumno") {
+          let role = member.guild.roles.cache.find((r) => r.name === "alumno");
+          member.roles.add(role);
+        }
+        if(response.data.data.role === "mentor"){
+          let role = member.guild.roles.cache.find((r) => r.name === "mentor");
+          member.roles.add(role);
+        }
         member.setNickname(nickName);
       }
     })
     .catch((e) => {
-      if (!e.response.data.success) {
+
         let role = member.guild.roles.cache.find(
           (r) => r.name === "no verificado"
         );
@@ -126,7 +132,8 @@ client.on(Events.GuildMemberAdd, (member) => {
             `El usuario ${member.user.username} acaba de entrar al servidor pero no ha sido verificado aun`
           );
         }
-      }
+        console.log('ERROR LINEA 135')
+        console.log(e)
     });
 });
 
@@ -136,7 +143,7 @@ client.on(Events.MessageCreate, (message) => {
   const includesProhibitedWord = prohibitedWords.some((word) =>
     message.content.toLowerCase().includes(word.toLowerCase())
   );
-  
+
   if (includesProhibitedWord) {
     let tag = message.member.user.tag;
     const [username, discriminator] = tag.split("#");

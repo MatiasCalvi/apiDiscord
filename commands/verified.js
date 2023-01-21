@@ -16,12 +16,21 @@ module.exports = {
         .then((response) => {
             if (response.data.success) {
             let nickName=`${response.data.data.lastName}${' '}${response.data.data.name}`
-            let role = interaction.guild.roles.cache.find(
+            if(response.data.data.role === "alumno"){
+              let role = interaction.guild.roles.cache.find(
               (r) => r.name === "alumno"
-            );
-             interaction.member.roles.add(role);
+              );
+              interaction.member.roles.add(role);
+              interaction.reply(`Has podido ser verificado por lo que ahora tu rol es de "alumno"`)   
+            } 
+            if(response.data.data.role === "mentor"){
+              let role = interaction.guild.roles.cache.find(
+              (r) => r.name === "mentor"
+              );
+              interaction.member.roles.add(role);
+              interaction.reply(`Has podido ser verificado por lo que ahora tu rol es de "mentor"`)   
+            }
              interaction.member.setNickname(nickName);
-             interaction.reply(`Has podido ser verificado por lo que ahora tu rol es de "alumno"`)   
           } 
         })
         .catch((e) => {
