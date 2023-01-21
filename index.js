@@ -134,9 +134,9 @@ client.on(Events.MessageCreate, (message) => {
   // Verificar si el mensaje contiene una palabra prohibida
 
   const includesProhibitedWord = prohibitedWords.some((word) =>
-    message.content.includes(word)
+    message.content.toLowerCase().includes(word.toLowerCase())
   );
-  /* console.log(message.member) */
+  
   if (includesProhibitedWord) {
     let tag = message.member.user.tag;
     const [username, discriminator] = tag.split("#");
