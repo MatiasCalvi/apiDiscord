@@ -6,6 +6,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const MongoClient = require("mongodb").MongoClient;
 const clientMongo = new MongoClient(DB_LINK, { useNewUrlParser: true });
+
 /* const ObjectId = require("mongodb").ObjectId; */
 
 const {
@@ -49,6 +50,32 @@ const client = new Client({
 
 client.on(Events.ClientReady, () => {
   console.log("ready!");
+});
+
+client.on(Events.GuildCreate, async (guild) => {
+	
+	let configArray;
+	try {
+        configArray = JSON.parse(fs.readFileSync('config.json'));
+    } catch (err) {
+        fs.writeFileSync('config.json', '[]');
+    	configArray = [];
+    }
+    const server = { server:guild.name, serverId:guild.id };
+    configArray.push(server);
+    let configString = JSON.stringify(configArray);
+    fs.writeFileSync('config.json', configString);
+});
+
+client.on(Events.GuildDelete, async (guild) => {
+  const expulsado = guild.members.cache.get(guild.id);
+  if (expulsado.id === client.user.id) {
+    let configArray = require('./config.json');
+    configArray = configArray.filter(server => server[guild.name] !== guild.id);
+    let configString = JSON.stringify(configArray);
+    fs.writeFileSync('config.json', configString);
+    console.log(`El bot ha sido expulsado del servidor ${guild.name} con ID ${guild.id} y ha sido eliminado del archivo config.json`);
+  }
 });
 
 client.commands = new Collection();
