@@ -269,7 +269,7 @@ client.on(Events.MessageCreate, (message) => {
                 let currentTime = new Date();
                 let currentDateString = currentTime.toLocaleString();
                 reportesChannel.send(
-                  `El usuario ${message.member.nickname} ha sido baneado por usar una palabra prohibida: ${reason}, Fecha y hora: ${currentDateString}.`
+                  `El usuario ${message.member.nickname} ha sido baneado, Fecha y hora: ${currentDateString}.`
                 );
               }
 
