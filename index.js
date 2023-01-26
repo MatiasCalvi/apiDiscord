@@ -67,16 +67,15 @@ client.on(Events.GuildCreate, async (guild) => {
     fs.writeFileSync('config.json', configString);
 });
 
-client.on(Events.GuildDelete, async (guild) => {
-  const expulsado = guild.members.cache.get(guild.id);
-  if (expulsado.id === client.user.id) {
-    let configArray = require('./config.json');
-    configArray = configArray.filter(server => server[guild.name] !== guild.id);
-    let configString = JSON.stringify(configArray);
-    fs.writeFileSync('config.json', configString);
-    console.log(`El bot ha sido expulsado del servidor ${guild.name} con ID ${guild.id} y ha sido eliminado del archivo config.json`);
+client.on(Events.GuildMemberRemove, async (member) => {
+  if (member.user.id === client.user.id) {
+  let configArray = require('./config.json');
+  configArray = configArray.filter(servidor => servidor.serverId !== member.guild.id);
+  let configString = JSON.stringify(configArray);
+  fs.writeFileSync('./config.json', configString);
+  console.log(`El bot ha sido expulsado del servidor ${member.guild.name} con ID ${member.guild.id} y ha sido eliminado del archivo config.json`);
   }
-});
+  }); 
 
 client.commands = new Collection();
 
