@@ -19,8 +19,6 @@ const {
 
 const { prohibitedWords } = require("./words/prohibitedWords");
 
-/* const { Console } = require("node:console"); */
-
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
