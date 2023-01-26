@@ -53,27 +53,30 @@ client.on(Events.ClientReady, () => {
 });
 
 client.on(Events.GuildCreate, async (guild) => {
-	
-	let configArray;
-	try {
-        configArray = JSON.parse(fs.readFileSync('config.json'));
-    } catch (err) {
-        fs.writeFileSync('config.json', '[]');
-    	configArray = [];
-    }
-    const server = { server:guild.name, serverId:guild.id };
-    configArray.push(server);
-    let configString = JSON.stringify(configArray);
-    fs.writeFileSync('config.json', configString);
+  let configArray;
+  try {
+    configArray = JSON.parse(fs.readFileSync("config.json"));
+  } catch (err) {
+    fs.writeFileSync("config.json", "[]");
+    configArray = [];
+  }
+  const server = { server: guild.name, serverId: guild.id };
+  configArray.push(server);
+  let configString = JSON.stringify(configArray);
+  fs.writeFileSync("config.json", configString);
 });
 
 client.on("guildMemberRemove", async (member) => {
   if (member.user.id === client.user.id) {
-  let configArray = require('./config.json');
-  configArray = configArray.filter(servidor => servidor.serverId !== member.guild.id);
-  let configString = JSON.stringify(configArray);
-  fs.writeFileSync('./config.json', configString);
-  console.log(`El bot ha sido expulsado del servidor ${member.guild.name} con ID ${member.guild.id} y ha sido eliminado del archivo config.json`);
+    let configArray = require("./config.json");
+    configArray = configArray.filter(
+      (servidor) => servidor.serverId !== member.guild.id
+    );
+    let configString = JSON.stringify(configArray);
+    fs.writeFileSync("./config.json", configString);
+    console.log(
+      `El bot ha sido expulsado del servidor ${member.guild.name} con ID ${member.guild.id} y ha sido eliminado del archivo config.json`
+    );
   }
 });
 
@@ -135,7 +138,7 @@ client.on(Events.GuildMemberAdd, (member) => {
           let role = member.guild.roles.cache.find((r) => r.name === "alumno");
           member.roles.add(role);
         }
-        if(response.data.data.role === "mentor"){
+        if (response.data.data.role === "mentor") {
           let role = member.guild.roles.cache.find((r) => r.name === "mentor");
           member.roles.add(role);
         }
@@ -143,21 +146,20 @@ client.on(Events.GuildMemberAdd, (member) => {
       }
     })
     .catch((e) => {
-
-        let role = member.guild.roles.cache.find(
-          (r) => r.name === "no verificado"
+      let role = member.guild.roles.cache.find(
+        (r) => r.name === "no verificado"
+      );
+      member.roles.add(role);
+      let channel = member.guild.channels.cache.find(
+        (channel) => channel.name === "no-verificados"
+      );
+      if (channel) {
+        channel.send(
+          `El usuario ${member.user.username} acaba de entrar al servidor pero no ha sido verificado aun`
         );
-        member.roles.add(role);
-        let channel = member.guild.channels.cache.find(
-          (channel) => channel.name === "no-verificados"
-        );
-        if (channel) {
-          channel.send(
-            `El usuario ${member.user.username} acaba de entrar al servidor pero no ha sido verificado aun`
-          );
-        }
-        console.log('ERROR LINEA 135')
-        console.log(e)
+      }
+      console.log("ERROR LINEA 135");
+      console.log(e);
     });
 });
 
