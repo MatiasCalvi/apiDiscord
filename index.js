@@ -51,6 +51,40 @@ client.on(Events.ClientReady, () => {
 });
 
 client.on(Events.GuildCreate, async (guild) => {
+  
+  let category = guild.channels.cache.find(channel => channel.name === "CANALES-DE-CONTROL" && channel.type === 4);
+  
+  if(category===undefined){
+    let channel= await guild.channels.create({name:"CANALES-DE-CONTROL", 
+        type: 4
+    });
+    let categoryId = channel.id;
+    await channel.guild.channels.create({name: "no-verificados", type: 0, parent: categoryId, position: 1 })
+      .catch(console.error);
+    await channel.guild.channels.create({name: "reportes", type: 0, parent: categoryId, position: 2 })
+      .catch(console.error);
+  }
+
+  let mentorRole = guild.roles.cache.find(role => role.name === "mentor");
+  let alumnoRole = guild.roles.cache.find(role => role.name === "alumno");
+  let adminRole = guild.roles.cache.find(role => role.name === "admin");
+  
+  if(mentorRole === undefined){
+   
+    await guild.roles.create({ name: 'mentor', color:'#FF9F33'})
+    .catch(console.error);
+  }
+  
+  if(alumnoRole === undefined){
+
+    await guild.roles.create({ name: 'alumno', color:'#FFF333'})
+    .catch(console.error);
+  }
+  
+  if(adminRole=== undefined){
+    await guild.roles.create({ name: 'admin', color:'#33FF3F', permissions:[PermissionsBitField.Flags.Administrator]})
+    .catch(console.error);
+  }
   let configArray;
   try {
     configArray = JSON.parse(fs.readFileSync("config.json"));
@@ -62,9 +96,11 @@ client.on(Events.GuildCreate, async (guild) => {
   configArray.push(server);
   let configString = JSON.stringify(configArray);
   fs.writeFileSync("config.json", configString);
+
 });
 
-client.on("guildMemberRemove", async (member) => {
+
+client.on(Events.GuildMemberRemove, async (member) => {
   if (member.user.id === client.user.id) {
     let configArray = require("./config.json");
     configArray = configArray.filter(

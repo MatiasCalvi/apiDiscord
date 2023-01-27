@@ -5,7 +5,7 @@ module.exports = {
     .setName("clear")
     .setDescription("Provides information about the user."),
   async execute(interaction) {
-    if(interaction.member.roles.cache.some(role => role.name === 'mentor')) {
+    if(interaction.member.roles.cache.some(role => role.name === 'mentor') || interaction.member.roles.cache.some(role => role.name === 'admin')) {
       interaction.channel
         .bulkDelete(100)
         .then((messages) => {
