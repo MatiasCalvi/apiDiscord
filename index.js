@@ -7,7 +7,6 @@ const path = require("node:path");
 const MongoClient = require("mongodb").MongoClient;
 const clientMongo = new MongoClient(DB_LINK, { useNewUrlParser: true });
 
-/* const ObjectId = require("mongodb").ObjectId; */
 
 const {
   Client,
@@ -28,23 +27,6 @@ const client = new Client({
   ],
 });
 
-/* const clientMongo = new MongoClient(DB_LINK, { useNewUrlParser: true }); */
-
-/* clientMongo.connect(err => {
-  const collection = clientMongo.db("test").collection("users");
-  
-  collection.find({ discordTag: { $exists: true } }).toArray((err, docs) => {
-	if (err) throw err;
-	  
-	for (let i = 0; i < docs.length; i++) {
-		let tag = docs[i].discordTag;
-		console.log(tag,"Aqui")
-		const [username, discriminator] = tag.split('#');
-		console.log(tag)
-	}
-  });
-  clientMongo.close()
-}); */
 
 client.on(Events.ClientReady, () => {
   console.log("ready!");
@@ -198,7 +180,7 @@ client.on(Events.GuildMemberAdd, (member) => {
 });
 
 client.on(Events.MessageCreate, (message) => {
-  // Verificar si el mensaje contiene una palabra prohibida
+
 
   const includesProhibitedWord = prohibitedWords.some((word) =>
     message.content.toLowerCase().includes(word.toLowerCase())
@@ -252,7 +234,7 @@ client.on(Events.MessageCreate, (message) => {
                   console.error(err);
                 });
 
-              // Eliminar el mensaje
+            
               message.delete();
             })
             .catch((e) => {
@@ -302,7 +284,6 @@ client.on(Events.MessageCreate, (message) => {
                   console.error(err);
                 });
 
-              // Eliminar el mensaje
               message.delete();
             })
             .catch((e) => {
@@ -321,7 +302,7 @@ client.on(Events.MessageCreate, (message) => {
             .then((response) => {
               let reason = `Palabra prohibida utilizada: ${message.content}`;
               let currentTime = new Date();
-              // Enviar un mensaje al canal de reportes
+            
               let reportesChannel = message.guild.channels.cache.get(
                 "1065801843332108309"
               );
@@ -360,11 +341,8 @@ client.on(Events.MessageCreate, (message) => {
                   console.log("ERROR LINEA 284");
                   console.error(err);
                 });
-
-              // Eliminar el mensaje
+         
               message.delete();
-
-              // Banear al usuario
 
               message.guild.members.ban(message.author, { reason: reason });
             })
