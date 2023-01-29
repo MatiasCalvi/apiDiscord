@@ -30,6 +30,8 @@ client.on(Events.ClientReady, () => {
   console.log("ready!");
 });
 
+// EVENTO CUANDO EL BOT ES INVITADO A UN NUEVO SERVIDOR
+
 let channelIDs = [];
 
 client.on(Events.GuildCreate, async (guild) => {
@@ -56,17 +58,17 @@ client.on(Events.GuildCreate, async (guild) => {
       .catch(console.error);
   }
 
-  // Obtener todos los canales del servidor
+ 
   const channels = guild.channels.cache;
-  // Recorrer todos los canales
+  
   channels.forEach((channel) => {
-    // Comprobar si el canal fue creado por el bot
+   
     if (channel.createdTimestamp > Date.now() - 5000) {
-      // Guardar el ID del canal en el array
+    
       channelIDs.push(channel.id);
     }
   });
-  // Imprimir los IDs de los canales
+ 
   console.log("canales creados: ", channelIDs);
 
   let adminRole = guild.roles.cache.find((role) => role.name === "admin");
@@ -121,6 +123,8 @@ client.on(Events.GuildCreate, async (guild) => {
   fs.writeFileSync("config.json", configString);
 });
 
+// EVENTO CUANDO SE ELIMINA EL BOT DEL SERVIDOR
+
 client.on(Events.GuildDelete, async (guild) => {
 
  let configArray = require("./config.json");
@@ -134,11 +138,14 @@ client.on(Events.GuildDelete, async (guild) => {
   );
 });
 
+// EVENTO CUANDO SE DESCONECTA EL SERVIDOR
+
 client.on('guildUnavailable', guild => {
   console.log('LINEA 138')
   console.log(guild)
 })
 
+// CREAR NUEVA COLECCION DE COMANDOS
 
 client.commands = new Collection();
 
@@ -160,6 +167,8 @@ for (const file of commandFiles) {
   }
 }
 
+// EVENTO CUANDO SE EJECUTA UN COMANDO
+
 client.on(Events.InteractionCreate, async (interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
@@ -180,6 +189,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     });
   }
 });
+
+// EVENTO CUANDO ENTRA UN USUARIO AL SERVIDOR
 
 client.on(Events.GuildMemberAdd, (member) => {
   console.log(`Nuevo miembro: ${member.user.username}`);
@@ -207,7 +218,7 @@ client.on(Events.GuildMemberAdd, (member) => {
     })
     .catch((e) => {
       let role = member.guild.roles.cache.find(
-        (r) => r.name === "no verificado"
+        (r) => r.name === "no-verificado"
       );
       member.roles.add(role);
       let channel = member.guild.channels.cache.find(
@@ -222,6 +233,8 @@ client.on(Events.GuildMemberAdd, (member) => {
       console.log(e);
     });
 });
+
+// EVENTO CUANDO ENTRA UN USUARIO DICE UNA PALABRA PROHIBIDA
 
 client.on(Events.MessageCreate, (message) => {
   const includesProhibitedWord = prohibitedWords.some((word) =>
