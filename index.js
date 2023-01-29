@@ -7,7 +7,6 @@ const path = require("node:path");
 const MongoClient = require("mongodb").MongoClient;
 const clientMongo = new MongoClient(DB_LINK, { useNewUrlParser: true });
 
-
 const {
   Client,
   Collection,
@@ -27,46 +26,88 @@ const client = new Client({
   ],
 });
 
-
 client.on(Events.ClientReady, () => {
   console.log("ready!");
 });
 
+let channelIDs = [];
+
 client.on(Events.GuildCreate, async (guild) => {
-  
-  let category = guild.channels.cache.find(channel => channel.name === "CANALES-DE-CONTROL" && channel.type === 4);
-  
-  if(category===undefined){
-    let channel= await guild.channels.create({name:"CANALES-DE-CONTROL", 
-        type: 4
+  let category = guild.channels.cache.find(
+    (channel) => channel.name === "CANALES-DE-CONTROL" && channel.type === 4
+  );
+
+  if (category === undefined) {
+    let channel = await guild.channels.create({
+      name: "CANALES-DE-CONTROL",
+      type: 4,
     });
     let categoryId = channel.id;
-    await channel.guild.channels.create({name: "no-verificados", type: 0, parent: categoryId, position: 1 })
+    await channel.guild.channels
+      .create({
+        name: "no-verificados",
+        type: 0,
+        parent: categoryId,
+        position: 1,
+      })
       .catch(console.error);
-    await channel.guild.channels.create({name: "reportes", type: 0, parent: categoryId, position: 2 })
+    await channel.guild.channels
+      .create({ name: "reportes", type: 0, parent: categoryId, position: 2 })
       .catch(console.error);
   }
 
-  let mentorRole = guild.roles.cache.find(role => role.name === "mentor");
-  let alumnoRole = guild.roles.cache.find(role => role.name === "alumno");
-  let adminRole = guild.roles.cache.find(role => role.name === "admin");
-  
-  if(mentorRole === undefined){
-   
-    await guild.roles.create({ name: 'mentor', color:'#FF9F33'})
-    .catch(console.error);
-  }
-  
-  if(alumnoRole === undefined){
+  // Obtener todos los canales del servidor
+  const channels = guild.channels.cache;
+  // Recorrer todos los canales
+  channels.forEach((channel) => {
+    // Comprobar si el canal fue creado por el bot
+    if (channel.createdTimestamp > Date.now() - 5000) {
+      // Guardar el ID del canal en el array
+      channelIDs.push(channel.id);
+    }
+  });
+  // Imprimir los IDs de los canales
+  console.log("canales creados: ", channelIDs);
 
-    await guild.roles.create({ name: 'alumno', color:'#FFF333'})
-    .catch(console.error);
+  let adminRole = guild.roles.cache.find((role) => role.name === "admin");
+  let mentorRole = guild.roles.cache.find((role) => role.name === "mentor");
+  let noAlumnoRole = guild.roles.cache.find(
+    (role) => role.name === "no-verificado"
+  );
+  let alumnoRole = guild.roles.cache.find((role) => role.name === "alumno");
+
+  if (adminRole === undefined) {
+    await guild.roles
+      .create({
+        name: "admin",
+        color: "#33FF3F",
+        permissions: [PermissionsBitField.Flags.Administrator],
+      })
+      .catch(console.error);
   }
-  
-  if(adminRole=== undefined){
-    await guild.roles.create({ name: 'admin', color:'#33FF3F', permissions:[PermissionsBitField.Flags.Administrator]})
-    .catch(console.error);
+
+  if (mentorRole === undefined) {
+    await guild.roles
+      .create({
+        name: "mentor",
+        color: "#FF9F33",
+        permissions: [PermissionsBitField.Flags.Administrator],
+      })
+      .catch(console.error);
   }
+
+  if (noAlumnoRole === undefined) {
+    await guild.roles
+      .create({ name: "no-verificado", color: "#FF1111" })
+      .catch(console.error);
+  }
+
+  if (alumnoRole === undefined) {
+    await guild.roles
+      .create({ name: "alumno", color: "#FFF333" })
+      .catch(console.error);
+  }
+
   let configArray;
   try {
     configArray = JSON.parse(fs.readFileSync("config.json"));
@@ -78,23 +119,26 @@ client.on(Events.GuildCreate, async (guild) => {
   configArray.push(server);
   let configString = JSON.stringify(configArray);
   fs.writeFileSync("config.json", configString);
-
 });
 
+client.on(Events.GuildDelete, async (guild) => {
 
-client.on(Events.GuildMemberRemove, async (member) => {
-  if (member.user.id === client.user.id) {
-    let configArray = require("./config.json");
-    configArray = configArray.filter(
-      (servidor) => servidor.serverId !== member.guild.id
-    );
-    let configString = JSON.stringify(configArray);
-    fs.writeFileSync("./config.json", configString);
-    console.log(
-      `El bot ha sido expulsado del servidor ${member.guild.name} con ID ${member.guild.id} y ha sido eliminado del archivo config.json`
-    );
-  }
+ let configArray = require("./config.json");
+  configArray = configArray.filter(
+    (servidor) => servidor.serverId !== guild.id
+  );
+  let configString = JSON.stringify(configArray);
+  fs.writeFileSync("./config.json", configString);
+  console.log(
+    `El bot ha sido expulsado del servidor ${guild.name} con ID ${guild.id} y ha sido eliminado del archivo config.json`
+  );
 });
+
+client.on('guildUnavailable', guild => {
+  console.log('LINEA 138')
+  console.log(guild)
+})
+
 
 client.commands = new Collection();
 
@@ -180,8 +224,6 @@ client.on(Events.GuildMemberAdd, (member) => {
 });
 
 client.on(Events.MessageCreate, (message) => {
-
-
   const includesProhibitedWord = prohibitedWords.some((word) =>
     message.content.toLowerCase().includes(word.toLowerCase())
   );
@@ -234,7 +276,6 @@ client.on(Events.MessageCreate, (message) => {
                   console.error(err);
                 });
 
-            
               message.delete();
             })
             .catch((e) => {
@@ -302,10 +343,16 @@ client.on(Events.MessageCreate, (message) => {
             .then((response) => {
               let reason = `Palabra prohibida utilizada: ${message.content}`;
               let currentTime = new Date();
-            
-              let reportesChannel = message.guild.channels.cache.get(
+
+              /* let reportesChannel = message.guild.channels.cache.get(
                 "1065801843332108309"
+              ); */
+              let reportesChannel1 = message.guild.channels.cache.find(
+                (channel) => channel.name === "reportes" && channel.type === 0
               );
+              let reportesChannelID = reportesChannel1.id;
+              let reportesChannel =
+                message.guild.channels.cache.get(reportesChannelID);
               if (reportesChannel) {
                 let currentTime = new Date();
                 let currentDateString = currentTime.toLocaleString();
@@ -341,7 +388,7 @@ client.on(Events.MessageCreate, (message) => {
                   console.log("ERROR LINEA 284");
                   console.error(err);
                 });
-         
+
               message.delete();
 
               message.guild.members.ban(message.author, { reason: reason });
