@@ -243,7 +243,7 @@ client.on(Events.MessageCreate, (message) => {
   if (includesProhibitedWord) {
     let tag = message.member.user.tag;
     const [username, discriminator] = tag.split("#");
-    const nick = message.member.nickname;
+    /* const nick = message.member.nickname; */
     axios
       .get(`http://localhost:8000/api/user/${username}%23${discriminator}`)
       .then((response) => {
