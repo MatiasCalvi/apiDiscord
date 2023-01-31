@@ -5,7 +5,7 @@ let { clientId, TOKEN }= process.env
 const fs = require('node:fs');
 
 let servers= require('./config.json')
-guildId=servers[servers.length-1].serverId
+guildId=servers[ servers.length-1 /* 0 */].serverId
 
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
