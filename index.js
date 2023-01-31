@@ -140,7 +140,7 @@ client.on(Events.GuildDelete, async (guild) => {
 // EVENTO CUANDO SE DESCONECTA EL SERVIDOR
 
 client.on("guildUnavailable", (guild) => {
-  console.log("LINEA 138");
+  console.log("LINEA 143");
   console.log(guild);
 });
 
@@ -228,8 +228,8 @@ client.on(Events.GuildMemberAdd, (member) => {
           `El usuario ${member.user.username} acaba de entrar al servidor pero no ha sido verificado aun`
         );
       }
-      console.log("ERROR LINEA 135");
-      console.log(e);
+      console.log("ERROR LINEA 231");
+      console.log(e.response.data.message);
     });
 });
 
@@ -284,19 +284,19 @@ client.on(Events.MessageCreate, (message) => {
                     })
                     .catch((err) => {
                       console.log(err);
-                      console.log("ERROR LINEA 311");
+                      console.log("ERROR LINEA 287");
                       clientMongo.close();
                     });
                 })
                 .catch((err) => {
-                  console.log("ERROR LINEA 316");
+                  console.log("ERROR LINEA 292");
                   console.error(err);
                 });
 
               message.delete();
             })
             .catch((e) => {
-              console.log("LINEA 323");
+              console.log("LINEA 299");
               console.log(e);
             });
         }
@@ -337,19 +337,19 @@ client.on(Events.MessageCreate, (message) => {
                     })
                     .catch((err) => {
                       console.log(err);
-                      console.log("ERROR LINEA 391");
+                      console.log("ERROR LINEA 340");
                       clientMongo.close();
                     });
                 })
                 .catch((err) => {
-                  console.log("ERROR LINEA 396");
+                  console.log("ERROR LINEA 345");
                   console.error(err);
                 });
 
               message.delete();
             })
             .catch((e) => {
-              console.log("LINEA 403");
+              console.log("LINEA 352");
               console.log(e);
             });
         }
@@ -401,12 +401,12 @@ client.on(Events.MessageCreate, (message) => {
                     })
                     .catch((err) => {
                       console.log(err);
-                      console.log("ERROR LINEA 486");
+                      console.log("ERROR LINEA 404");
                       clientMongo.close();
                     });
                 })
                 .catch((err) => {
-                  console.log("ERROR LINEA 491");
+                  console.log("ERROR LINEA 409");
                   console.error(err);
                 });
 
@@ -415,13 +415,13 @@ client.on(Events.MessageCreate, (message) => {
               message.guild.members.ban(message.author, { reason: reason });
             })
             .catch((e) => {
-              console.log("ERROR LINEA 293");
+              console.log("ERROR LINEA 418");
               console.log(e);
             });
         }
       })
       .catch((e) => {
-        console.log("ERROR LINEA 299");
+        console.log("ERROR LINEA 424");
         console.log(e);
       });
   }

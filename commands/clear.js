@@ -3,7 +3,7 @@ const { SlashCommandBuilder } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("clear")
-    .setDescription("Provides information about the user."),
+    .setDescription("Elimina los ultimos 100 mensajes"),
   async execute(interaction) {
     if(interaction.member.roles.cache.some(role => role.name === 'mentor') || interaction.member.roles.cache.some(role => role.name === 'admin')) {
       interaction.channel

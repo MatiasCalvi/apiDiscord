@@ -4,7 +4,7 @@ const axios = require("axios");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("verified")
-    .setDescription("Check if your user tag is valid"),
+    .setDescription("Verifica si tu usuario es valido"),
   async execute(interaction) {
     if (
       !interaction.member.roles.cache.some(
