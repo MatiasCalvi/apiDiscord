@@ -35,42 +35,6 @@ client.on(Events.ClientReady, () => {
 let channelIDs = [];
 
 client.on(Events.GuildCreate, async (guild) => {
-  let category = guild.channels.cache.find(
-    (channel) => channel.name === "CANALES-DE-CONTROL" && channel.type === 4
-  );
-
-  if (category === undefined) {
-    let channel = await guild.channels.create({
-      name: "CANALES-DE-CONTROL",
-      type: 4,
-    });
-    let categoryId = channel.id;
-    await channel.guild.channels
-      .create({
-        name: "no-verificados",
-        type: 0,
-        parent: categoryId,
-        position: 1,
-      })
-      .catch(console.error);
-    await channel.guild.channels
-      .create({ name: "reportes", type: 0, parent: categoryId, position: 2 })
-      .catch(console.error);
-  }
-
- 
-  const channels = guild.channels.cache;
-  
-  channels.forEach((channel) => {
-   
-    if (channel.createdTimestamp > Date.now() - 5000) {
-    
-      channelIDs.push(channel.id);
-    }
-  });
- 
-  console.log("canales creados: ", channelIDs);
-
   let adminRole = guild.roles.cache.find((role) => role.name === "admin");
   let mentorRole = guild.roles.cache.find((role) => role.name === "mentor");
   let noAlumnoRole = guild.roles.cache.find(
@@ -110,6 +74,42 @@ client.on(Events.GuildCreate, async (guild) => {
       .catch(console.error);
   }
 
+  let category = guild.channels.cache.find(
+    (channel) => channel.name === "CANALES-DE-CONTROL" && channel.type === 4
+  );
+
+  if (category === undefined) {
+    let channel = await guild.channels.create({
+      name: "CANALES-DE-CONTROL",
+      type: 4,
+    });
+    let categoryId = channel.id;
+    await channel.guild.channels
+      .create({
+        name: "no-verificados",
+        type: 0,
+        parent: categoryId,
+        position: 1,
+      })
+      .catch(console.error);
+    await channel.guild.channels
+      .create({ name: "reportes", type: 0, parent: categoryId, position: 2 })
+      .catch(console.error);
+    await channel.guild.channels
+      .create({ name: "implementacion-de-comandos", type: 0, parent: categoryId, position: 3 })
+      .catch(console.error);
+  }
+
+  const channels = guild.channels.cache;
+
+  channels.forEach((channel) => {
+    if (channel.createdTimestamp > Date.now() - 5000) {
+      channelIDs.push(channel.id);
+    }
+  });
+
+  console.log("canales creados: ", channelIDs);
+
   let configArray;
   try {
     configArray = JSON.parse(fs.readFileSync("config.json"));
@@ -126,8 +126,7 @@ client.on(Events.GuildCreate, async (guild) => {
 // EVENTO CUANDO SE ELIMINA EL BOT DEL SERVIDOR
 
 client.on(Events.GuildDelete, async (guild) => {
-
- let configArray = require("./config.json");
+  let configArray = require("./config.json");
   configArray = configArray.filter(
     (servidor) => servidor.serverId !== guild.id
   );
@@ -140,10 +139,10 @@ client.on(Events.GuildDelete, async (guild) => {
 
 // EVENTO CUANDO SE DESCONECTA EL SERVIDOR
 
-client.on('guildUnavailable', guild => {
-  console.log('LINEA 138')
-  console.log(guild)
-})
+client.on("guildUnavailable", (guild) => {
+  console.log("LINEA 138");
+  console.log(guild);
+});
 
 // CREAR NUEVA COLECCION DE COMANDOS
 
@@ -199,7 +198,7 @@ client.on(Events.GuildMemberAdd, (member) => {
   console.log(`ID: ${member.id}`);
   const [username, discriminator] = tag.split("#");
   axios
-    .get(`http://localhost:8080/api/user/${username}%23${discriminator}`)
+    .get(`http://localhost:8000/api/user/${username}%23${discriminator}`)
     .then((response) => {
       if (response.data.success) {
         let nickName = `${response.data.data.lastName}${" "}${
@@ -246,15 +245,16 @@ client.on(Events.MessageCreate, (message) => {
     const [username, discriminator] = tag.split("#");
     const nick = message.member.nickname;
     axios
-      .get(`http://localhost:8080/api/user/${username}%23${discriminator}`)
+      .get(`http://localhost:8000/api/user/${username}%23${discriminator}`)
       .then((response) => {
         if (response.data.data.strikes === 0) {
           let data = {};
+          let currentTime = new Date();
           data.strikes = 1;
           let reason = `Palabra prohibida utilizada: ${message.content}`;
           axios
             .patch(
-              `http://localhost:8080/api/user/${username}%23${discriminator}`,
+              `http://localhost:8000/api/user/${username}%23${discriminator}`,
               data
             )
             .then((response) => {
@@ -264,46 +264,50 @@ client.on(Events.MessageCreate, (message) => {
               clientMongo
                 .connect()
                 .then(() => {
-                  const collection = clientMongo.db("test").collection("bans");
+                  const collection = clientMongo.db("test").collection("users");
                   collection
-                    .insertOne({
-                      userIdDiscord: message.author.id,
-                      username: message.member.nickname,
-                      discordTag: message.author.tag,
-                      reportedBy: message.client.user.tag,
-                      reason: reason,
-                      date: new Date(),
-                    })
+                    .findOneAndUpdate(
+                      { discordTag: message.author.tag },
+                      {
+                        $push: {
+                          reports: {
+                            reportedBy: message.client.user.tag,
+                            reason: reason,
+                            date: currentTime,
+                          },
+                        },
+                      }
+                    )
                     .then((result) => {
                       console.log("Report saved to the database");
                       clientMongo.close();
                     })
                     .catch((err) => {
-                      console.log("ERROR LINEA 177");
                       console.log(err);
+                      console.log("ERROR LINEA 311");
                       clientMongo.close();
                     });
                 })
                 .catch((err) => {
-                  console.log("ERROR LINEA 182");
+                  console.log("ERROR LINEA 316");
                   console.error(err);
                 });
 
               message.delete();
             })
             .catch((e) => {
-              console.log("LINEA 186");
+              console.log("LINEA 323");
               console.log(e);
             });
         }
         if (response.data.data.strikes === 1) {
           let data = {};
           data.strikes = 2;
-
+          let currentTime = new Date();
           let reason = `Palabra prohibida utilizada: ${message.content}`;
           axios
             .patch(
-              `http://localhost:8080/api/user/${username}%23${discriminator}`,
+              `http://localhost:8000/api/user/${username}%23${discriminator}`,
               data
             )
             .then((response) => {
@@ -313,35 +317,39 @@ client.on(Events.MessageCreate, (message) => {
               clientMongo
                 .connect()
                 .then(() => {
-                  const collection = clientMongo.db("test").collection("bans");
+                  const collection = clientMongo.db("test").collection("users");
                   collection
-                    .insertOne({
-                      userIdDiscord: message.author.id,
-                      username: message.member.nickname,
-                      discordTag: message.author.tag,
-                      reportedBy: message.client.user.tag,
-                      reason: reason,
-                      date: new Date(),
-                    })
+                    .findOneAndUpdate(
+                      { discordTag: message.author.tag },
+                      {
+                        $push: {
+                          reports: {
+                            reportedBy: message.client.user.tag,
+                            reason: reason,
+                            date: currentTime,
+                          },
+                        },
+                      }
+                    )
                     .then((result) => {
                       console.log("Report saved to the database");
                       clientMongo.close();
                     })
                     .catch((err) => {
-                      console.log("ERROR LINEA 223");
                       console.log(err);
+                      console.log("ERROR LINEA 391");
                       clientMongo.close();
                     });
                 })
                 .catch((err) => {
-                  console.log("ERROR LINEA 228");
+                  console.log("ERROR LINEA 396");
                   console.error(err);
                 });
 
               message.delete();
             })
             .catch((e) => {
-              console.log("LINEA 233");
+              console.log("LINEA 403");
               console.log(e);
             });
         }
@@ -350,16 +358,13 @@ client.on(Events.MessageCreate, (message) => {
           data.strikes = 3;
           axios
             .patch(
-              `http://localhost:8080/api/user/${username}%23${discriminator}`,
+              `http://localhost:8000/api/user/${username}%23${discriminator}`,
               data
             )
             .then((response) => {
               let reason = `Palabra prohibida utilizada: ${message.content}`;
               let currentTime = new Date();
 
-              /* let reportesChannel = message.guild.channels.cache.get(
-                "1065801843332108309"
-              ); */
               let reportesChannel1 = message.guild.channels.cache.find(
                 (channel) => channel.name === "reportes" && channel.type === 0
               );
@@ -373,32 +378,35 @@ client.on(Events.MessageCreate, (message) => {
                   `El usuario ${message.member.nickname} ha sido baneado, Fecha y hora: ${currentDateString}.`
                 );
               }
-
               clientMongo
                 .connect()
                 .then(() => {
-                  const collection = clientMongo.db("test").collection("bans");
+                  const collection = clientMongo.db("test").collection("users");
                   collection
-                    .insertOne({
-                      userIdDiscord: message.author.id,
-                      username: nick,
-                      discordTag: message.author.tag,
-                      reportedBy: message.client.user.tag,
-                      reason: reason,
-                      date: currentTime,
-                    })
+                    .findOneAndUpdate(
+                      { discordTag: message.author.tag },
+                      {
+                        $push: {
+                          reports: {
+                            reportedBy: message.client.user.tag,
+                            reason: reason,
+                            date: currentTime,
+                          },
+                        },
+                      }
+                    )
                     .then((result) => {
                       console.log("Report saved to the database");
                       clientMongo.close();
                     })
                     .catch((err) => {
                       console.log(err);
-                      console.log("ERROR LINEA 280");
+                      console.log("ERROR LINEA 486");
                       clientMongo.close();
                     });
                 })
                 .catch((err) => {
-                  console.log("ERROR LINEA 284");
+                  console.log("ERROR LINEA 491");
                   console.error(err);
                 });
 
