@@ -32,6 +32,8 @@ module.exports = {
               interaction.reply(
                 `Has podido ser verificado por lo que ahora tu rol es de "alumno"`
               );
+              let noVerifiedRole = interaction.guild.roles.cache.find((r) => r.name === "no-verificado");
+              interaction.member.roles.remove(noVerifiedRole);
             }
             if (response.data.data.role === "mentor") {
               let role = interaction.guild.roles.cache.find(
@@ -41,10 +43,10 @@ module.exports = {
               interaction.reply(
                 `Has podido ser verificado por lo que ahora tu rol es de "mentor"`
               );
+              let noVerifiedRole = interaction.guild.roles.cache.find((r) => r.name === "no-verificado");
+              interaction.member.roles.remove(noVerifiedRole);
             }
             interaction.member.setNickname(nickName);
-            let noVerifiedRole = interaction.guild.roles.cache.find((r) => r.name === "no-verificado");
-            interaction.member.roles.remove(noVerifiedRole);
           }
         })
         .catch((e) => {

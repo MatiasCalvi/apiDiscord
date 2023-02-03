@@ -37,6 +37,7 @@ let channelIDs = [];
 client.on(Events.GuildCreate, async (guild) => {
   let adminRole = guild.roles.cache.find((role) => role.name === "admin");
   let mentorRole = guild.roles.cache.find((role) => role.name === "mentor");
+  let egresado = guild.roles.cache.find((role) => role.name === "egresado");
   let noAlumnoRole = guild.roles.cache.find(
     (role) => role.name === "no-verificado"
   );
@@ -62,15 +63,21 @@ client.on(Events.GuildCreate, async (guild) => {
       .catch(console.error);
   }
 
-  if (noAlumnoRole === undefined) {
+  if (egresado === undefined) {
     await guild.roles
-      .create({ name: "no-verificado", color: "#FF1111" })
+      .create({ name: "egresado", color: "#FF5833" })
       .catch(console.error);
   }
 
   if (alumnoRole === undefined) {
     await guild.roles
       .create({ name: "alumno", color: "#FFF333" })
+      .catch(console.error);
+  }
+
+  if (noAlumnoRole === undefined) {
+    await guild.roles
+      .create({ name: "no-verificado", color: "#FF1111" })
       .catch(console.error);
   }
 
